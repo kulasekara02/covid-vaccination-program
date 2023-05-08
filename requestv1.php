@@ -17,138 +17,136 @@
 <body>
 	
 <?php
-	session_start();
 	include "DBconnection.php";
-	if(!isset($_SESSION['email']))
-	{
-		header("location:adminlogin.php");
-	}
-	else
-	{
-		$id = $_SESSION['id']; 
-		$email = $_SESSION['email'];
-		
-		$result = mysqli_query($conn,"SELECT * FROM admins WHERE id='" . $id."'");
-		$row  = mysqli_fetch_array($result);
-		
-		if($row >0)
-		{
-		$name=$row['name'];
-		$password =$row['password'];
-		 		}
-		
-	$mysqli = new mysqli('localhost','root','','covidv') or die(mysqli_error($mysqli));
-		 $resultSet = $mysqli->query("SELECT * FROM first_vaccine_requests ") or die ($mysqli->erorr);		
+	session_start();
 
+	// Check if the user is logged in
+	if(!isset($_SESSION['email'])) {
+		header("location:adminlogin.php");
+		exit();
 	}
-	  ?>
+
+	// Retrieve user information from the database
+	$id = $_SESSION['id'];
+	$email = $_SESSION['email'];
+	$result = mysqli_query($mysqli, "SELECT * FROM admins WHERE id='$id'");
+	if (!$result) {
+		die('Invalid query: ' . mysqli_error($mysqli));
+	}
+	$row = mysqli_fetch_assoc($result);
+	$name = $row['name'];
+	$password = $row['password'];
+
+	// Retrieve first vaccine requests from the database
+	$result_set = $mysqli->query("SELECT * FROM first_vaccine_requests") or die($mysqli->error);
+?>
 	
 	
 	
 	
-<div class="topnav" style=" margin-top: -20px  " >
-<a style="padding-top:0px; padding-bottom: 0px"><img height="60px" src="228-2285847_emblem-of-sri-lanka-national-emblem-of-sri.png"></a>
-<h2 style="font-family: Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, 'sans-serif'">SRI LANKAN ONLINE COVID VACCINATION</h2>
- 	
-<a  href="adminindex.php">Registerd Patients</a>
-<a  href="requestv1.php">Requests Vacinne 1</a>
-<a  href="requestv2.php">Requests Vacinne 2</a>
-<a  href="userLogout.php">Log out</a>	
-<h3  align="right" style="font-family:Cambria, 'Hoefler Text', 'Liberation Serif', Times, 'Times New Roman', 'serif'">User - <?php echo $name;?></h3>
- 
-	
- 
+<div class="topnav">
+	<a href="#"><img src="logo.png" height="60px"></a>
+	<h2>SRI LANKAN ONLINE COVID VACCINATION</h2>
+	<a href="adminindex.php">Registered Patients</a>
+	<a href="requestv1.php">Requests Vaccine 1</a>
+	<a href="requestv2.php">Requests Vaccine 2</a>
+	<a href="userLogout.php">Log out</a>    
+	<h3 align="right">User - <?php echo $name;?></h3>
 </div>
+
+<style>
+	.topnav {
+		margin-top: -20px;
+	}
+	h2 {
+		font-family: Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, 'sans-serif';
+	}
+	h3 {
+		font-family: Cambria, 'Hoefler Text', 'Liberation Serif', Times, 'Times New Roman', 'serif';
+	}
+	.topnav a {
+		padding-top: 0;
+		padding-bottom: 0;
+	}
+</style>>
 	
 	
 	
 <div class="section2" align="center" style="margin-bottom: 20px; overflow-y: scroll" >
 	
-	<?php
-	include "DBconnection.php";
-if (isset($_POST['updatedata'])){
-	 
-	$id = $_POST['update_id']; 
-	
-	 
-	$patientID = $_POST['patientID'];
-		$FvaccineLocation = $_POST['FvaccineLocation'];
-		$FvaccineTime = $_POST['FvaccineTime'];
-		$status = $_POST['status'];
-		 
+<?php
+include "DBconnection.php";
 
-   $query = "UPDATE first_vaccine_requests SET FvaccineLocation='$FvaccineLocation', FvaccineTime='$FvaccineTime', status='$status' WHERE patientID= $patientID " ;
-	$query_run = mysqli_query($conn, $query);
-	if($query_run)
-	{	
-	echo "submitted";	
-   header('location:requestv1.php') ;     	
-	}
-	else
-	{
-		echo "form not submitted";
-	}               
-}
+if (isset($_POST['updatedata'])) {
+
+    $id = $_POST['update_id'];
+
+    $patientID = mysqli_real_escape_string($conn, $_POST['patientID']);
+    $FvaccineLocation = mysqli_real_escape_string($conn, $_POST['FvaccineLocation']);
+    $FvaccineTime = mysqli_real_escape_string($conn, $_POST['FvaccineTime']);
+    $status = mysqli_real_escape_string($conn, $_POST['status']);
+
+    $stmt = mysqli_prepare($conn, "UPDATE first_vaccine_requests SET FvaccineLocation=?, FvaccineTime=?, status=? WHERE patientID=?");
+    mysqli_stmt_bind_param($stmt, "sssi", $FvaccineLocation, $FvaccineTime, $status, $patientID);
+    $result = mysqli_stmt_execute($stmt);
+
+    if ($result) {
+        echo "submitted";
+        header('location:requestv1.php');
+    } else {
+        echo "form not submitted";
+    }
+} 
 ?>
 	
 	
 		<!-- update model --> 		  
-	<div align="left" class="col-md-12" style="margin-top: 5px" >	
-		
-<div class="modal fade" id="editmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Update </h5>
-		<form method="post" action=" "  enctype="multipart/form-data"> 	
-			
-			
-       <button type="button" class="close" data-dismiss="modal"> close</button>
-		<input type="hidden" name="" value=""> 
-      </div> 
-	 
-      <div class="modal-body">
-		  
-		  
-		 
-		  
-    <input type="hidden" name="update_id" id="update_id" class="form-control"   readonly/>
-	 
-		  
-    <input  type="text" name="eid" id="eid" class="form-control"   />
-  	<br>  <label>Name</label>
-     <input type="text" name="name" id="name" class="form-control"   readonly/>
-	<br>   <label>Email</label>
-     <input type="text" name="email" id="email" class="form-control"   readonly/>
-    <br>  <label>City</label>
-     <input type="text" name="city" id="city" class="form-control"   readonly/>
-    <br>
-		    <label>Vaccine</label>
-     <input type="text" name="vaccinename" id="vaccinename" class="form-control"   readonly/>
-    <br> 
-		    <label>Patient ID</label>
-     <input type="text" name="patientID" id="patientID" class="form-control"  readonly/>
-	<br>   
-		  <label>Location</label>	
-     <input type="text" name="FvaccineLocation" id="FvaccineLocation" class="form-control"    />
-	<br>  
-		  <label>Time</label>	
-     <input type="text" name="FvaccineTime" id="FvaccineTime" class="form-control"    />
-    <br> 
-	<label>Status</label>	  
-     <input type="text" name="status" id="status"  class="form-control"  />
-     
-      <div class="modal-footer">
-                            	
-     <button type="submit" value="submit" id="update_id" name="updatedata" class="btn btn-info"> Update </button>                 
-       <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>                  
-      </div>
-		</form>	
-    </div>
-  </div>
-</div>		
+<div align="left" class="col-md-12" style="margin-top: 5px">    
+    <div class="modal fade" id="editmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Update</h5>
+                    <button type="button" class="close" data-dismiss="modal">Close</button>
+                </div> 
+                <form method="post" action="process_form.php" enctype="multipart/form-data">     
+                    <div class="modal-body">
+                        <input type="hidden" name="update_id" id="update_id_input" class="form-control" readonly/>
+                        <label for="eid">EID</label>
+                        <input type="text" name="eid" id="eid" class="form-control" />
+                        <br>
+                        <label for="name">Name</label>
+                        <input type="text" name="name" id="name" class="form-control" readonly/>
+                        <br>
+                        <label for="email">Email</label>
+                        <input type="text" name="email" id="email" class="form-control" readonly/>
+                        <br>
+                        <label for="city">City</label>
+                        <input type="text" name="city" id="city" class="form-control" readonly/>
+                        <br>
+                        <label for="vaccinename">Vaccine</label>
+                        <input type="text" name="vaccinename" id="vaccinename" class="form-control" readonly/>
+                        <br>
+                        <label for="patientID">Patient ID</label>
+                        <input type="text" name="patientID" id="patientID" class="form-control" readonly/>
+                        <br>   
+                        <label for="FvaccineLocation">Location</label>    
+                        <input type="text" name="FvaccineLocation" id="FvaccineLocation" class="form-control"/>
+                        <br>
+                        <label for="FvaccineTime">Time</label>    
+                        <input type="text" name="FvaccineTime" id="FvaccineTime" class="form-control"/>
+                        <br> 
+                        <label for="status">Status</label>      
+                        <input type="text" name="status" id="status"  class="form-control"/>
+                    </div>
 
-    </div>
+                    <div class="modal-footer">
+                        <button type="submit" name="updatedata" class="btn btn-info">Update</button>                 
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>                  
+                    </div>
+                </form>    
+            </div>
+        </div>
 	
 <div style="margin-top: 10px"> 
 	
@@ -280,33 +278,23 @@ if (isset($_POST['updatedata'])){
 	
 	
 	
-	<script>
-		$(document).ready(function() {
-			
-			$('.editbtn').on('click', function(){				 
-			$('#editmodal').modal('show');				 
-			$tr = $(this).closest('tr');	
-			var data = $tr.children("td").map(function(){
-				return $(this).text();
-			}).get();	
-				
-			console.log(data);
-				$('#update_id').val(data[0]);
-				$('#eid').val(data[0]);
-				$('#name').val(data[1]);
-				$('#email').val(data[2]);
-				$('#city').val(data[3]);
-				$('#vaccinename').val(data[4]);
-				$('#patientID').val(data[5]);
-				$('#FvaccineLocation').val(data[6]);
-				$('#FvaccineTime').val(data[7]);
-				$('#status').val(data[8]);
- 	
-		});
-  
-	});
-	
- 
+<script>
+    $(document).ready(function() {
+        
+        $('.editbtn').on('click', function() {             
+            $('#editmodal').modal('show');
+            var data = $(this).closest('tr').find('td').map(function() {
+                return $(this).text();
+            }).get();
+            console.log(data);
+
+            $('#update_id').val(data[0]);
+            $('#eid, #name, #email, #city, #vaccinename, #patientID, #FvaccineLocation, #FvaccineTime, #status').each(function(index) {
+                $(this).val(data[index]);
+            });
+        });
+    });
 </script>
+
 </body>
 </html>
